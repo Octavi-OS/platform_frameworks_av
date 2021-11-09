@@ -82,6 +82,9 @@
 #include "utils/CameraServiceProxyWrapper.h"
 
 #include <vendor/lineage/camera/motor/1.0/ICameraMotor.h>
+#ifdef CAMERA_NEEDS_CLIENT_INFO_LIB
+#include <vendor/oneplus/hardware/camera/1.0/IOnePlusCameraProvider.h>
+#endif
 
 namespace {
     const char* kPermissionServiceName = "permission";
@@ -102,6 +105,9 @@ using hardware::camera2::ICameraInjectionCallback;
 using hardware::camera2::ICameraInjectionSession;
 using hardware::camera2::utils::CameraIdAndSessionConfiguration;
 using hardware::camera2::utils::ConcurrentCameraIdCombination;
+#ifdef CAMERA_NEEDS_CLIENT_INFO_LIB
+using ::vendor::oneplus::hardware::camera::V1_0::IOnePlusCameraProvider;
+#endif
 
 using vendor::lineage::camera::motor::V1_0::ICameraMotor;
 
@@ -143,6 +149,10 @@ static const String16
 const char *sFileName = "lastOpenSessionDumpFile";
 static constexpr int32_t kVendorClientScore = resource_policy::PERCEPTIBLE_APP_ADJ;
 static constexpr int32_t kVendorClientState = ActivityManager::PROCESS_STATE_PERSISTENT_UI;
+
+#ifdef CAMERA_NEEDS_CLIENT_INFO_LIB
+static const sp<IOnePlusCameraProvider> gVendorCameraProviderService = IOnePlusCameraProvider::getService();
+#endif
 
 const String8 CameraService::kOfflineDevice("offline-");
 
@@ -3223,6 +3233,9 @@ status_t CameraService::BasicClient::startCameraOps() {
     std::ofstream cpf("/data/misc/camera/client_package_name");
     std::string cpn = String8(mClientPackageName).string();
     cpf << cpn;
+#endif
+#ifdef CAMERA_NEEDS_CLIENT_INFO_LIB
+    gVendorCameraProviderService->setPackageName(String8(mClientPackageName).string());
 #endif
     return OK;
 }
